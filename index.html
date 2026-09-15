@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MBTI 性格派对 - 和朋友比一比谁更离谱</title>
+<style>
+/* ========== 全局重置 ========== */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg-1: #ffeef5;
+  --bg-2: #e8f4ff;
+  --bg-3: #fff5e6;
+  --primary: #ff6b9d;
+  --primary-light: #ffc4d6;
+  --secondary: #74b9ff;
+  --secondary-light: #c5e3ff;
+  --accent: #ffe066;
+  --accent-2: #a8e6cf;
+  --purple: #b794f6;
+  --text-main: #4a3a4a;
+  --text-light: #8a7a8a;
+  --card-shadow: 0 8px 32px rgba(255, 107, 157, 0.15);
+  --card-shadow-2: 0 4px 24px rgba(116, 185, 255, 0.12);
+  --radius: 20px;
+  --radius-sm: 12px;
+}
+
+html { font-size: 16px; }
+
+body {
+  font-family: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", "Noto Sans SC", sans-serif;
+  background: linear-gradient(135deg, var(--bg-1) 0%, var(--bg-2) 50%, var(--bg-3) 100%);
+  min-height: 100vh;
+  color: var(--text-main);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ========== 背景装饰 ========== */
+.bg-decor {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+}
+.bg-decor span {
+  position: absolute; font-size: 2rem; opacity: 0.35; animation: floatUp 18s linear infinite;
+}
+.bg-decor span:nth-child(1) { left: 8%; top: 10%; animation-delay: 0s; }
+.bg-decor span:nth-child(2) { left: 25%; top: 5%; animation-delay: 3s; }
+.bg-decor span:nth-child(3) { left: 50%; top: 15%; animation-delay: 6s; }
+.bg-decor span:nth-child(4) { left: 75%; top: 8%; animation-delay: 9s; }
+.bg-decor span:nth-child(5) { left: 90%; top: 20%; animation-delay: 12s; }
+.bg-decor span:nth-child(6) { left: 15%; top: 60%; animation-delay: 2s; }
+.bg-decor span:nth-child(7) { left: 60%; top: 70%; animation-delay: 5s; }
+.bg-decor span:nth-child(8) { left: 85%; top: 55%; animation-delay: 8s; }
+@keyframes floatUp {
+  0% { transform: translateY(0) rotate(0deg); opacity: 0.35; }
+  50% { opacity: 0.2; }
+  100% { transform: translateY(-120px) rotate(15deg); opacity: 0; }
+}
+
+/* ========== 页面容器 ========== */
+.page {
+  display: none;
+  position: relative; z-index: 1;
+  min-height: 100vh;
+  padding: 24px 16px 60px;
+  animation: fadeIn 0.4s ease;
+}
+.page.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+.container { max-width: 600px; margin: 0 auto; }
+
+/* ========== 首页 ========== */
+#page-home { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; text-align: center; }
+.home-logo { font-size: 3.5rem; margin-bottom: 8px; animation: bounce 2s ease infinite; }
+@keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+.home-title {
+  font-size: 2rem; font-weight: 800;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 12px;
+}
+.home-subtitle { font-size: 1rem; color: var(--text-light); margin-bottom: 32px; }
+
+.home-buttons { display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 320px; }
+
+/* ========== 按钮 ========== */
+.btn {
+  border: none; cursor: pointer; border-radius: var(--radius);
+  font-family: inherit; font-weight: 700; font-size: 1rem;
+  padding: 16px 32px; transition: all 0.25s ease; position: relative; overflow: hidden;
+}
+.btn:active { transform: scale(0.96); }
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary), #ff8fab);
+  color: #fff; box-shadow: 0 6px 20px rgba(255, 107, 157, 0.35);
+}
+.btn-primary:hover { box-shadow: 0 8px 28px rgba(255, 107, 157, 0.45); transform: translateY(-2px); }
+.btn-secondary {
+  background: linear-gradient(135deg, var(--secondary), #91d4ff);
+  color: #fff; box-shadow: 0 6px 20px rgba(116, 185, 255, 0.35);
+}
+.btn-secondary:hover { box-shadow: 0 8px 28px rgba(116, 185, 255, 0.45); transform: translateY(-2px); }
+.btn-ghost {
+  background: rgba(255,255,255,0.7); color: var(--text-main);
+  border: 2px solid rgba(255, 107, 157, 0.2);
+}
+.btn-ghost:hover { border-color: var(--primary); background: rgba(255,107,157,0.06); }
+.btn-small { padding: 10px 20px; font-size: 0.875rem; border-radius: var(--radius-sm); }
+
+/* ========== 答题页 ========== */
+.quiz-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.quiz-progress { font-size: 0.85rem; color: var(--text-light); font-weight: 600; }
+.quiz-nickname { font-size: 0.85rem; color: var(--text-light); }
+
+.progress-bar { width: 100%; height: 8px; background: rgba(255,255,255,0.6); border-radius: 100px; overflow: hidden; margin-bottom: 28px; }
+.progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--secondary)); border-radius: 100px; transition: width 0.4s ease; }
+
+.quiz-card {
+  background: rgba(255,255,255,0.85); backdrop-filter: blur(12px);
+  border-radius: var(--radius); padding: 36px 24px;
+  box-shadow: var(--card-shadow); text-align: center;
+}
+.quiz-emoji { font-size: 2.5rem; margin-bottom: 16px; }
+.quiz-question { font-size: 1.15rem; font-weight: 600; color: var(--text-main); margin-bottom: 28px; line-height: 1.7; }
+
+.quiz-options { display: flex; flex-direction: column; gap: 14px; }
+.quiz-option {
+  background: rgba(255,255,255,0.6); border: 2px solid rgba(255, 107, 157, 0.12);
+  border-radius: var(--radius-sm); padding: 18px 20px; cursor: pointer;
+  font-family: inherit; font-size: 0.95rem; color: var(--text-main); text-align: left;
+  transition: all 0.2s ease; line-height: 1.5;
+}
+.quiz-option:hover { border-color: var(--primary); background: rgba(255,107,157,0.05); transform: translateX(4px); }
+.quiz-option:active { transform: scale(0.98); }
+
+/* ========== 结果页 ========== */
+.result-card {
+  background: rgba(255,255,255,0.9); backdrop-filter: blur(12px);
+  border-radius: var(--radius); box-shadow: var(--card-shadow);
+  padding: 36px 24px; text-align: center; margin-bottom: 20px;
+  position: relative; overflow: hidden;
+}
+.result-card::before {
+  content: ''; position: absolute; top: -40px; right: -40px;
+  width: 120px; height: 120px; border-radius: 50%;
+  background: var(--accent); opacity: 0.3;
+}
+.result-emoji { font-size: 4rem; margin-bottom: 12px; position: relative; z-index: 1; }
+.result-type {
+  font-size: 2.2rem; font-weight: 800; letter-spacing: 3px; margin-bottom: 4px;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  position: relative; z-index: 1;
+}
+.result-nickname { font-size: 1.1rem; font-weight: 600; color: var(--text-light); margin-bottom: 24px; position: relative; z-index: 1; }
+
+.result-dimensions { display: flex; justify-content: center; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; position: relative; z-index: 1; }
+.dim-tag { padding: 6px 14px; border-radius: 100px; font-size: 0.8rem; font-weight: 700; }
+.dim-ei { background: var(--primary-light); color: #c2185b; }
+.dim-sn { background: var(--secondary-light); color: #1565c0; }
+.dim-tf { background: #ffd6e0; color: #c2185b; }
+.dim-jp { background: #d4edda; color: #2e7d32; }
+
+.result-descriptions { text-align: left; position: relative; z-index: 1; }
+.result-descriptions h3 { font-size: 0.95rem; color: var(--text-light); margin-bottom: 14px; text-align: center; }
+.result-descriptions ul { list-style: none; }
+.result-descriptions li {
+  background: rgba(255,255,255,0.5); border-radius: var(--radius-sm);
+  padding: 12px 16px; margin-bottom: 10px; font-size: 0.9rem; line-height: 1.6;
+  display: flex; align-items: flex-start; gap: 8px;
+}
+.result-descriptions li .li-emoji { flex-shrink: 0; }
+
+.result-code-box {
+  background: rgba(255,255,255,0.9); backdrop-filter: blur(12px);
+  border-radius: var(--radius); box-shadow: var(--card-shadow-2);
+  padding: 24px 20px; margin-bottom: 20px; text-align: center;
+}
+.result-code-box h3 { font-size: 0.95rem; color: var(--text-light); margin-bottom: 12px; }
+.code-display {
+  background: linear-gradient(135deg, #f0f0f5, #e8e8f5);
+  border: 2px dashed var(--primary); border-radius: var(--radius-sm);
+  padding: 14px 16px; font-family: "Courier New", monospace; font-size: 1.05rem;
+  font-weight: 700; color: var(--primary); letter-spacing: 1px; margin-bottom: 14px;
+  word-break: break-all; user-select: all;
+}
+.code-tip { font-size: 0.8rem; color: var(--text-light); margin-top: 10px; }
+
+.result-actions { display: flex; flex-direction: column; gap: 12px; }
+
+/* ========== 导入页 ========== */
+.import-card {
+  background: rgba(255,255,255,0.9); backdrop-filter: blur(12px);
+  border-radius: var(--radius); box-shadow: var(--card-shadow);
+  padding: 28px 20px; margin-bottom: 20px;
+}
+.import-card h2 { font-size: 1.2rem; margin-bottom: 8px; text-align: center; }
+.import-card .sub { font-size: 0.85rem; color: var(--text-light); text-align: center; margin-bottom: 20px; }
+
+.import-input-group { margin-bottom: 16px; }
+.import-input-group label { display: block; font-size: 0.85rem; color: var(--text-light); margin-bottom: 6px; font-weight: 600; }
+.import-input {
+  width: 100%; border: 2px solid rgba(255,107,157,0.15); border-radius: var(--radius-sm);
+  padding: 12px 16px; font-family: inherit; font-size: 0.95rem; background: rgba(255,255,255,0.6);
+  transition: border-color 0.2s; margin-bottom: 12px;
+}
+.import-input:focus { outline: none; border-color: var(--primary); }
+
+.imported-list { margin-bottom: 16px; }
+.imported-list-title { font-size: 0.85rem; color: var(--text-light); margin-bottom: 10px; font-weight: 600; }
+.imported-item {
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(255,255,255,0.6); border-radius: var(--radius-sm);
+  padding: 10px 16px; margin-bottom: 8px; font-size: 0.9rem;
+}
+.imported-item .info { display: flex; align-items: center; gap: 8px; }
+.imported-item .type-badge { font-weight: 700; color: var(--primary); }
+.imported-item .del-btn { background: none; border: none; color: #e57373; cursor: pointer; font-size: 1.1rem; padding: 4px 8px; }
+.imported-item .del-btn:hover { color: #d32f2f; }
+.empty-hint { font-size: 0.85rem; color: var(--text-light); text-align: center; padding: 16px; }
+
+.import-actions { display: flex; gap: 12px; }
+.import-actions .btn { flex: 1; }
+
+/* ========== 排行榜页 ========== */
+.rank-header { text-align: center; margin-bottom: 24px; }
+.rank-title { font-size: 1.6rem; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.rank-subtitle { font-size: 0.9rem; color: var(--text-light); margin-top: 4px; }
+
+.rank-card {
+  background: rgba(255,255,255,0.9); backdrop-filter: blur(12px);
+  border-radius: var(--radius); box-shadow: var(--card-shadow-2);
+  padding: 24px 20px; margin-bottom: 16px;
+}
+.rank-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.rank-card h3 .icon { font-size: 1.4rem; }
+
+.rank-list { display: flex; flex-direction: column; gap: 10px; }
+.rank-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px; border-radius: var(--radius-sm);
+  background: rgba(255,255,255,0.5); transition: transform 0.2s;
+}
+.rank-item:first-child { background: linear-gradient(135deg, rgba(255,224,102,0.25), rgba(255,107,157,0.12)); border: 2px solid rgba(255,224,102,0.4); }
+.rank-item:nth-child(2) { background: linear-gradient(135deg, rgba(200,200,200,0.2), rgba(116,185,255,0.08)); }
+.rank-item:nth-child(3) { background: linear-gradient(135deg, rgba(210,160,100,0.12), rgba(255,224,102,0.06)); }
+
+.rank-pos { font-size: 1.3rem; font-weight: 800; width: 36px; text-align: center; flex-shrink: 0; }
+.rank-pos.gold { color: #f9a825; }
+.rank-pos.silver { color: #9e9e9e; }
+.rank-pos.bronze { color: #b8845b; }
+
+.rank-name { font-weight: 600; flex: 1; min-width: 0; }
+.rank-label { font-size: 0.8rem; color: var(--text-light); font-weight: 400; }
+.rank-type { font-size: 0.85rem; font-weight: 700; color: var(--primary); }
+
+.rank-actions { display: flex; gap: 12px; margin-top: 8px; }
+.rank-actions .btn { flex: 1; }
+
+/* ========== Toast ========== */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: rgba(74, 58, 74, 0.92); color: #fff; padding: 12px 24px;
+  border-radius: 100px; font-size: 0.9rem; z-index: 9999;
+  opacity: 0; transition: opacity 0.3s, transform 0.3s; pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(-8px); }
+
+/* ========== 通用 ========== */
+.section-title { font-size: 0.85rem; color: var(--text-light); font-weight: 600; margin: 24px 0 10px; text-align: center; }
+.top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+</style>
+</head>
+<body>
+
+<!-- 背景装饰 -->
+<div class="bg-decor">
+  <span>✨</span><span>🎉</span><span>💫</span><span>🌈</span><span>⭐</span>
+  <span>🤩</span><span>🔮</span><span>🎈</span>
+</div>
+
+<!-- ========== 首页 ========== -->
+<div class="page active" id="page-home">
+  <div class="container" style="display:flex;flex-direction:column;align-items:center;">
+    <div class="home-logo">🎭</div>
+    <h1 class="home-title">MBTI 性格派对</h1>
+    <p class="home-subtitle">3分钟测出你的性格类型，和朋友比比谁更离谱</p>
+    <div class="home-buttons">
+      <button class="btn btn-primary" onclick="startQuiz()">开始测评 🚀</button>
+      <button class="btn btn-secondary" onclick="showPage('page-import')">群组对比 📊</button>
+      <button class="btn btn-ghost" id="btn-history" style="display:none" onclick="goToResult()">查看我的结果 👀</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 答题页 ========== -->
+<div class="page" id="page-quiz">
+  <div class="container">
+    <div class="quiz-header">
+      <span class="quiz-nickname" id="quiz-name-display"></span>
+      <span class="quiz-progress" id="quiz-progress">1 / 28</span>
+    </div>
+    <div class="progress-bar"><div class="progress-bar-fill" id="progress-fill" style="width:0%"></div></div>
+    <div class="quiz-card" id="quiz-card">
+      <div class="quiz-emoji" id="quiz-emoji">🌟</div>
+      <div class="quiz-question" id="quiz-question">加载中…</div>
+      <div class="quiz-options" id="quiz-options"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 结果页 ========== -->
+<div class="page" id="page-result">
+  <div class="container">
+    <div class="result-card">
+      <div class="result-emoji" id="result-emoji">🎉</div>
+      <div class="result-type" id="result-type">XXXX</div>
+      <div class="result-nickname" id="result-nickname">加载中…</div>
+      <div class="result-dimensions" id="result-dimensions"></div>
+      <div class="result-descriptions">
+        <h3>你是这样的 👇</h3>
+        <ul id="result-desc-list"></ul>
+      </div>
+    </div>
+    <div class="result-code-box">
+      <h3>📋 你的结果码</h3>
+      <div class="code-display" id="result-code">XXXX</div>
+      <button class="btn btn-primary btn-small" onclick="copyCode()">复制结果码 🔗</button>
+      <p class="code-tip">发给朋友，让他们也测一下，然后一起群组对比！</p>
+    </div>
+    <div class="result-actions">
+      <button class="btn btn-secondary" onclick="showPage('page-import')">群组对比 📊</button>
+      <button class="btn btn-ghost" onclick="retakeQuiz()">再做一次 🔄</button>
+      <button class="btn btn-ghost" onclick="showPage('page-home')">回到首页 🏠</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 导入页 ========== -->
+<div class="page" id="page-import">
+  <div class="container">
+    <div class="top-nav">
+      <button class="btn btn-ghost btn-small" onclick="showPage('page-home')">← 返回</button>
+    </div>
+    <div class="import-card">
+      <h2>📊 群组对比</h2>
+      <p class="sub">把朋友们的结果码都粘贴进来，生成你们的趣味排行榜！</p>
+      <div class="import-input-group">
+        <label>输入昵称</label>
+        <input type="text" class="import-input" id="import-name" placeholder="取个名字（选填）" maxlength="10">
+        <label>粘贴结果码</label>
+        <input type="text" class="import-input" id="import-code" placeholder="粘贴 MBTI-XXXX-XXXX 格式的码">
+      </div>
+      <button class="btn btn-primary btn-small" onclick="addImport()" style="width:100%">添加到列表 ➕</button>
+    </div>
+    <div class="import-card" id="imported-card" style="display:none">
+      <div class="imported-list-title">已添加的成员：</div>
+      <div class="imported-list" id="imported-list"></div>
+      <div class="import-actions">
+        <button class="btn btn-primary" onclick="generateRank()">生成排行榜 🏆</button>
+        <button class="btn btn-ghost" onclick="clearImports()">清空</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 排行榜页 ========== -->
+<div class="page" id="page-ranking">
+  <div class="container">
+    <div class="rank-header">
+      <div class="rank-title">🏆 趣味排行榜</div>
+      <div class="rank-subtitle" id="rank-subtitle">看看你们群都是些什么神仙</div>
+    </div>
+    <div id="rank-cards"></div>
+    <div class="rank-actions">
+      <button class="btn btn-secondary" onclick="showPage('page-import')">继续添加 🔗</button>
+      <button class="btn btn-ghost" onclick="showPage('page-home')">回到首页 🏠</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+ *  MBTI 性格派对 - 核心逻辑
+ * ============================================================ */
+
+/* ========== 1. 题库 (28题, 每维度7题) ========== */
+const QUESTIONS = [
+  // E/I 维度 (7题)
+  { dim:'EI', emoji:'🎉', q:'周五晚上终于自由了，你的第一反应是？',
+    a:{text:'赶紧约人出去嗨，一个人待着太无聊了', val:'E'},
+    b:{text:'终于可以一个人宅家了，出去social太累', val:'I'} },
+  { dim:'EI', emoji:'📱', q:'手机消息你一般是？',
+    a:{text:'秒回！聊天让我精神满满', val:'E'},
+    b:{text:'看到了但不想回，打字好累心累', val:'I'} },
+  { dim:'EI', emoji:'🧋', q:'到一个新环境（新学校/新公司），你会？',
+    a:{text:'主动搭讪，三天之内认识了半层楼的人', val:'E'},
+    b:{text:'默默观察，先认一个搭子再慢慢融入', val:'I'} },
+  { dim:'EI', emoji:'🔋', q:'低电量了，你怎么充电？',
+    a:{text:'出去逛逛，跟人聊聊天就满电了', val:'E'},
+    b:{text:'关上房门，戴上耳机，独处才能回血', val:'I'} },
+  { dim:'EI', emoji:'🗣️', q:'开会/讨论时你通常？',
+    a:{text:'边说边想，说着说着思路就清晰了', val:'E'},
+    b:{text:'先在脑子里想清楚，想好了再开口', val:'I'} },
+  { dim:'EI', emoji:'🤝', q:'朋友说你"太安静了"还是"太闹腾了"？',
+    a:{text:'太闹腾了，永远有说不完的话', val:'E'},
+    b:{text:'太安静了，经常被问"你怎么不说话"', val:'I'} },
+  { dim:'EI', emoji:'🎤', q:'KTV里你是？',
+    a:{text:'麦霸本霸，全场活跃气氛担当', val:'E'},
+    b:{text:'角落吃果盘，偶尔唱一首安静的歌', val:'I'} },
+
+  // S/N 维度 (7题)
+  { dim:'SN', emoji:'📚', q:'看一本书/一部电影你更在意？',
+    a:{text:'情节合不合理，细节经不经得起推敲', val:'S'},
+    b:{text:'背后想表达什么意思，有什么隐喻', val:'N'} },
+  { dim:'SN', emoji:'🧩', q:'面对一个新问题你倾向？',
+    a:{text:'先看实际数据，参考已有经验来搞定', val:'S'},
+    b:{text:'先发散思维，想象各种可能的方案', val:'N'} },
+  { dim:'SN', emoji:'✈️', q:'旅行规划你是？',
+    a:{text:'行程精确到小时，每个景点都查好攻略', val:'S'},
+    b:{text:'大方向定了就行，随性探索更有趣', val:'N'} },
+  { dim:'SN', emoji:'💬', q:'聊天时你更喜欢聊？',
+    a:{text:'具体的事：今天吃了啥、谁跟谁在一起了', val:'S'},
+    b:{text:'抽象的事：人生意义、未来趋势、平行宇宙', val:'N'} },
+  { dim:'SN', emoji:'🎨', q:'你对"想象力丰富"的评价是？',
+    a:{text:'挺好的，但靠谱和脚踏实地更重要', val:'S'},
+    b:{text:'太重要了，没有想象力的生活太无聊', val:'N'} },
+  { dim:'SN', emoji:'🔮', q:'你更相信？',
+    a:{text:'眼见为实，数据和事实不会骗人', val:'S'},
+    b:{text:'直觉和第六感，经常准得离谱', val:'N'} },
+  { dim:'SN', emoji:'🏠', q:'装修房子你更想？',
+    a:{text:'实用至上，收纳合理好打理', val:'S'},
+    b:{text:'设计感优先，好看才是正义', val:'N'} },
+
+  // T/F 维度 (7题)
+  { dim:'TF', emoji:'😢', q:'朋友跟你哭诉失恋了，你的第一反应？',
+    a:{text:'分析问题出在哪，帮对方理性复盘', val:'T'},
+    b:{text:'先抱抱对方，一起骂渣男/渣女再说', val:'F'} },
+  { dim:'TF', emoji:'⚖️', q:'你觉得做决定时最重要的是？',
+    a:{text:'逻辑对不对，利弊分析清楚', val:'T'},
+    b:{text:'大家感受好不好，不能伤了和气', val:'F'} },
+  { dim:'TF', emoji:'😤', q:'跟人吵架了你先想？',
+    a:{text:'谁对谁错，讲道理摆事实', val:'T'},
+    b:{text:'对方是不是不开心了，要不要先哄一下', val:'F'} },
+  { dim:'TF', emoji:'📝', q:'看评论区吵起来了你倾向？',
+    a:{text:'默默分析谁说得有道理，事实是什么', val:'T'},
+    b:{text:'共情弱势一方，感觉到了就替对方说话', val:'F'} },
+  { dim:'TF', emoji:'🎭', q:'别人说你？',
+    a:{text:'太理性了，有点冷漠无情', val:'T'},
+    b:{text:'太感性了，容易情绪化', val:'F'} },
+  { dim:'TF', emoji:'💔', q:'你更怕被说？',
+    a:{text:'"你脑子不好使/不讲道理"', val:'T'},
+    b:{text:'"你冷血/没心没肺"', val:'F'} },
+  { dim:'TF', emoji:'🎬', q:'看感人的电影你？',
+    a:{text:'内心毫无波澜甚至想挑剧情漏洞', val:'T'},
+    b:{text:'哭得稀里哗啦纸巾用完一整盒', val:'F'} },
+
+  // J/P 维度 (7题)
+  { dim:'JP', emoji:'📋', q:'你的 to-do list 状况是？',
+    a:{text:'列好了按顺序执行，划掉一项超爽', val:'J'},
+    b:{text:'列了但从来看不完，DDL战士了解一下', val:'P'} },
+  { dim:'JP', emoji:'🧹', q:'出门前你？',
+    a:{text:'提前收拾好，准时甚至提前到', val:'J'},
+    b:{text:'踩点出发，经常差一点迟到', val:'P'} },
+  { dim:'JP', emoji:'🛒', q:'逛超市你？',
+    a:{text:'列好清单直奔目标，买完就走', val:'J'},
+    b:{text:'随便逛逛看到什么想买就买', val:'P'} },
+  { dim:'JP', emoji:'⚖️', q:'面对选择你？',
+    a:{text:'尽快决定，悬而未决的感觉太难受了', val:'J'},
+    b:{text:'多看看多等等，说不定有更好的', val:'P'} },
+  { dim:'JP', emoji:'🧳', q:'旅行收拾行李你？',
+    a:{text:'提前一天收拾好，列清单逐一检查', val:'J'},
+    b:{text:'出发前最后一刻狂塞，到了发现忘带东西', val:'P'} },
+  { dim:'JP', emoji:'📅', q:'你的日程表？',
+    a:{text:'安排得明明白白，精确到小时', val:'J'},
+    b:{text:'什么日程表？走一步算一步', val:'P'} },
+  { dim:'JP', emoji:'🔄', q:'计划突然变了你？',
+    a:{text:'焦虑！计划被打乱的感觉太难受了', val:'J'},
+    b:{text:'无所谓，随机应变反而更刺激', val:'P'} },
+];
+
+/* ========== 2. 16型描述 ========== */
+const MBTI_DATA = {
+  INTJ: { emoji:'♟️', nickname:'战略家', color:'#6890c8',
+    desc:['嘴上说着"关你什么事"，脑子里已经推演了八步棋','社交耗电大户，三句话之内就能把天聊死','对自己要求极高，但表面总是一副"随便啦"的样子','遇到蠢问题不会直接说蠢，但会用沉默来表达','内心有一座城堡，外人只看到一面墙'] },
+  INTP: { emoji:'🔬', nickname:'逻辑学家', color:'#7bb3ee',
+    desc:['脑内24小时弹幕不断，表面安静如鸡','"为什么"是口头禅，追根究底到令人发指','可以为一个无关紧要的问题查3小时资料','社交能量条极短，两小时就想回家充电','看起来在发呆，其实在思考宇宙起源'] },
+  ENTJ: { emoji:'👑', nickname:'指挥官', color:'#e8845d',
+    desc:['天生的领导者，下意识就开始安排别人','效率至上，觉得闲聊是在浪费生命','自信到发光，偶尔让人想翻白眼但不得不服','目标明确，不达目的不罢休的卷王','嘴硬心软，骂你是为了你好（真的）'] },
+  ENTP: { emoji:'🗣️', nickname:'辩论家', color:'#f5a623',
+    desc:['杠精本精，抬杠是呼吸不是选择','脑洞大到离谱，永远在推翻重来','你说的每个观点我都能反驳，包括这句','喜欢挑战权威不是因为叛逆，是因为好玩','"换个角度想"是口头禅，角度换到怀疑人生'] },
+  INFJ: { emoji:'🔮', nickname:'提倡者', color:'#9b7ed6',
+    desc:['外冷内热，看着高冷实则内心戏超多','能共情所有人，但没人能共情自己','理想主义者，相信世界会变好的（虽然嘴上说躺平）','一眼看穿你在想什么，但选择不说破','玄学体质，第六感准到自己害怕'] },
+  INFP: { emoji:'🦋', nickname:'调停者', color:'#e0709e',
+    desc:['人间温柔本柔，但倔起来十头牛拉不回','内心住着一个诗人，朋友圈三天可见怕被看穿','共情能力满级，看个广告都能哭','选择困难症晚期，点个外卖纠结半小时','理想很丰满，现实很骨感，但还在坚持做梦'] },
+  ENFJ: { emoji:'🌟', nickname:'主人公', color:'#f06292',
+    desc:['天生的团魂，走到哪都是气氛组组长','操不完的心，觉得所有人都是自己的责任','"你还好吗"是真心问的，不是客套','社交能量无限，照顾每个人的情绪','太会来事了，让人怀疑是不是学的管理学'] },
+  ENFP: { emoji:'🐕', nickname:'竞选者', color:'#ff8a65',
+    desc:['快乐小狗本狗，热情到让人招架不住','兴趣广泛但三分钟热度，爱好每周换一轮','"我有一个idea！" 每天说八百遍','社交蝴蝶，跟谁都能聊，聊完就忘聊了啥','脑子里有100个宇宙，但没有一个完整的计划'] },
+  ISTJ: { emoji:'📋', nickname:'物流师', color:'#78909c',
+    desc:['靠谱本人，说好的事绝不掉链子','规矩就是规矩，没有规矩不成方圆','情绪稳定得像块石头，天塌下来先看日历','日记本、手账、Excel是精神支柱','"以前都是这样做的" —— 经典口头禅'] },
+  ISFJ: { emoji:'🤱', nickname:'守卫者', color:'#a1887f',
+    desc:['默默照顾所有人的天使，但经常忘了照顾自己','记性超好，你三个月前说的小事都记得','不会拒绝别人，累死自己也要帮人','怕给人添麻烦，有事先自己扛','温暖如冬日热可可，但别理所当然'] },
+  ESTJ: { emoji:'⚽', nickname:'总经理', color:'#5d8a6e',
+    desc:['行动派，说了就做不废话','组织能力满级，团建永远是那个安排一切的人','对就是对，错就是错，别跟我扯弯弯绕','嘴上严厉但会偷偷帮你把事做了','效率即正义，磨叽是原罪'] },
+  ESFJ: { emoji:'💕', nickname:'执政官', color:'#e91e63',
+    desc:['人间小太阳，天生社交达人','记住所有人的生日、喜好、忌口','聚会主动当那个串场的人，怕冷场','"大家都开心就好" 是真心话','付出型人格，但偶尔也需要被关心'] },
+  ISTP: { emoji:'🔧', nickname:'鉴赏家', color:'#5d9e9e',
+    desc:['酷盖本盖，话少但出手就解决问题','手能力满级，什么坏了都能修（包括人生）','不爱解释，"你看着办"是常态','看似冷漠实则有趣，冷幽默大师','危险运动爱好者，追求肾上腺素'] },
+  ISFP: { emoji:'🎨', nickname:'探险家', color:'#ec7c8c',
+    desc:['安静的美男子/美女子，审美在线','不喜欢冲突，能忍就忍，忍不了就消失','活在自己的审美世界里，穿搭从不撞衫','嘴上说"随便"，其实心里门清','表面佛系，内心有自己的坚持'] },
+  ESTP: { emoji:'🔥', nickname:'企业家', color:'#ff7043',
+    desc:['人间冒险家，胆子大到离谱','行动力爆表，先干了再说想什么','社交达人+运动健将的终极结合体','"怕什么，冲就完了" 人生信条','活在当下，昨天的事昨天算'] },
+  ESFP: { emoji:'🎉', nickname:'表演者', color:'#ff5722',
+    desc:['派对灵魂，没有TA活跃不了的场子','享乐主义代表，快乐至上','审美在线，永远是最亮眼的那个','"别想那么多，开心最重要！"','朋友圈晒照冠军，永远在玩永远在吃'] },
+};
+
+/* ========== 3. 排行榜标签定义 ========== */
+const RANK_CATEGORIES = [
+  { icon:'🧊', title:'最社恐 TOP', dim:'EI', dir:'I', label:'社交电量5分钟见底，出门=渡劫' },
+  { icon:'🔥', title:'最社牛 TOP', dim:'EI', dir:'E', label:'天生社交恐怖分子，跟谁都能聊' },
+  { icon:'🧠', title:'最脑洞大 TOP', dim:'SN', dir:'N', label:'脑子里装了100个平行宇宙' },
+  { icon:'👁️', title:'最脚踏实地 TOP', dim:'SN', dir:'S', label:'脚踩大地从不做梦，靠谱本谱' },
+  { icon:'❄️', title:'最理性 TOP', dim:'TF', dir:'T', label:'看 Titanic 毫无波澜还在挑剧情漏洞' },
+  { icon:'💗', title:'最感性 TOP', dim:'TF', dir:'F', label:'看广告都能哭，共情力溢出' },
+  { icon:'📋', title:'最卷王 TOP', dim:'JP', dir:'J', label:'DDL？不存在的，提前三天就交了' },
+  { icon:'⏰', title:'最DDL战士 TOP', dim:'JP', dir:'P', label:'不到最后一刻绝不开始，刺激！' },
+];
+
+/* ========== 4. 状态管理 ========== */
+let quizState = {
+  answers: [],
+  currentQ: 0,
+  nickname: '',
+  scores: { E:0, I:0, S:0, N:0, T:0, F:0, J:0, P:0 },
+  resultType: '',
+};
+let importedMembers = [];
+let myResult = null;
+
+/* ========== 5. 页面切换 ========== */
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+  if (id === 'page-import') renderImported();
+}
+
+/* ========== 6. Toast ========== */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+/* ========== 7. 开始测评 ========== */
+const NICKNAME_POOL = [
+  '快乐小狗','社恐猫咪','摸鱼达人','卷王之王','emo小怪兽','柠檬精',
+  '干饭人','熬夜冠军','人间清醒','戏精本精','佛系青年','沙雕网友',
+  '精神小伙','甜妹本甜','酷盖本盖','吃瓜群众','躺平大师','元气满满',
+  '社牛天花板','内卷发动机','反卷先锋','发疯选手','理性到哭','感性怪才'
+];
+function randomNickname() {
+  return NICKNAME_POOL[Math.floor(Math.random() * NICKNAME_POOL.length)]
+    + (Math.floor(Math.random() * 90) + 10);
+}
+function startQuiz() {
+  quizState.nickname = randomNickname();
+  quizState.answers = [];
+  quizState.currentQ = 0;
+  quizState.scores = { E:0, I:0, S:0, N:0, T:0, F:0, J:0, P:0 };
+  document.getElementById('quiz-name-display').textContent = '🧑 ' + quizState.nickname;
+  showPage('page-quiz');
+  renderQuestion();
+}
+
+/* ========== 8. 渲染题目 ========== */
+function renderQuestion() {
+  const q = QUESTIONS[quizState.currentQ];
+  const total = QUESTIONS.length;
+  document.getElementById('quiz-progress').textContent = `${quizState.currentQ + 1} / ${total}`;
+  document.getElementById('progress-fill').style.width = `${((quizState.currentQ + 1) / total) * 100}%`;
+  document.getElementById('quiz-emoji').textContent = q.emoji;
+  document.getElementById('quiz-question').textContent = q.q;
+
+  const optsDiv = document.getElementById('quiz-options');
+  optsDiv.innerHTML = '';
+  [q.a, q.b].forEach((opt, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'quiz-option';
+    btn.textContent = opt.text;
+    btn.onclick = () => answerQuestion(opt.val);
+    optsDiv.appendChild(btn);
+  });
+}
+
+/* ========== 9. 回答问题 ========== */
+function answerQuestion(val) {
+  quizState.scores[val]++;
+  quizState.answers.push(val);
+  quizState.currentQ++;
+  if (quizState.currentQ < QUESTIONS.length) {
+    renderQuestion();
+  } else {
+    calculateResult();
+  }
+}
+
+/* ========== 10. 计算结果 ========== */
+function calculateResult() {
+  const s = quizState.scores;
+  let type = '';
+  type += (s.E >= s.I) ? 'E' : 'I';
+  type += (s.S >= s.N) ? 'S' : 'N';
+  type += (s.T >= s.F) ? 'T' : 'F';
+  type += (s.J >= s.P) ? 'J' : 'P';
+  quizState.resultType = type;
+
+  // 生成结果码
+  const code = generateCode(type, quizState.nickname);
+  myResult = { type, nickname: quizState.nickname, code };
+
+  // 保存到 localStorage
+  try {
+    localStorage.setItem('mbti_party_result', JSON.stringify(myResult));
+  } catch(e) {}
+
+  // 显示结果
+  renderResult(type);
+  document.getElementById('btn-history').style.display = '';
+  showPage('page-result');
+}
+
+/* ========== 11. 生成结果码 ========== */
+function generateCode(type, nickname) {
+  // 格式: MBTI-TYPE-XXXX (XXXX是nickname的4位hex编码，支持中文)
+  let nameCode = '';
+  for (let i = 0; i < nickname.length; i++) {
+    nameCode += nickname.charCodeAt(i).toString(16).padStart(4, '0');
+  }
+  if (!nameCode) nameCode = '0000';
+  return `MBTI-${type}-${nameCode}`;
+}
+
+/* ========== 12. 解码结果码 ========== */
+function decodeCode(code) {
+  code = code.trim().toUpperCase();
+  const m = code.match(/^MBTI-([A-Z]{4})-([0-9A-F]+)$/);
+  if (!m) return null;
+  const type = m[1];
+  if (!MBTI_DATA[type]) return null;
+  const hex = m[2];
+  let nickname = '';
+  for (let i = 0; i < hex.length; i += 4) {
+    nickname += String.fromCharCode(parseInt(hex.substr(i, 4), 16));
+  }
+  return { type, nickname: nickname || '匿名用户' };
+}
+
+/* ========== 13. 渲染结果页 ========== */
+function renderResult(type) {
+  const data = MBTI_DATA[type];
+  document.getElementById('result-emoji').textContent = data.emoji;
+  document.getElementById('result-type').textContent = type;
+  document.getElementById('result-nickname').textContent = data.nickname;
+
+  // 维度标签
+  const dimsDiv = document.getElementById('result-dimensions');
+  dimsDiv.innerHTML = '';
+  const dimLabels = [
+    { cls:'dim-ei', label: type[0]==='E'?'外向 E':'内向 I' },
+    { cls:'dim-sn', label: type[1]==='S'?'实感 S':'直觉 N' },
+    { cls:'dim-tf', label: type[2]==='T'?'思考 T':'情感 F' },
+    { cls:'dim-jp', label: type[3]==='J'?'判断 J':'感知 P' },
+  ];
+  dimLabels.forEach(d => {
+    const tag = document.createElement('span');
+    tag.className = `dim-tag ${d.cls}`;
+    tag.textContent = d.label;
+    dimsDiv.appendChild(tag);
+  });
+
+  // 描述列表
+  const descUl = document.getElementById('result-desc-list');
+  descUl.innerHTML = '';
+  data.desc.forEach(d => {
+    const li = document.createElement('li');
+    li.innerHTML = `<span class="li-emoji">💫</span><span>${d}</span>`;
+    descUl.appendChild(li);
+  });
+
+  // 结果码
+  document.getElementById('result-code').textContent = myResult ? myResult.code : generateCode(type, quizState.nickname || '匿名用户');
+}
+
+/* ========== 14. 复制结果码 ========== */
+function copyCode() {
+  const code = document.getElementById('result-code').textContent;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(code).then(() => showToast('结果码已复制！快发给朋友吧~'));
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = code;
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); showToast('结果码已复制！快发给朋友吧~'); }
+    catch(e) { showToast('复制失败，请手动复制~'); }
+    document.body.removeChild(ta);
+  }
+}
+
+/* ========== 15. 重做 / 查看历史结果 ========== */
+function retakeQuiz() {
+  try { localStorage.removeItem('mbti_party_result'); } catch(e) {}
+  myResult = null;
+  document.getElementById('btn-history').style.display = 'none';
+  startQuiz();
+}
+
+function goToResult() {
+  if (myResult) {
+    renderResult(myResult.type);
+    showPage('page-result');
+  } else {
+    startQuiz();
+  }
+}
+
+/* ========== 16. 导入页逻辑 ========== */
+function addImport() {
+  const nameInput = document.getElementById('import-name');
+  const codeInput = document.getElementById('import-code');
+  const code = codeInput.value.trim();
+  if (!code) { showToast('请先粘贴结果码~'); return; }
+  const decoded = decodeCode(code);
+  if (!decoded) { showToast('结果码格式不对，检查一下~'); return; }
+  // 使用输入的昵称或码中的昵称
+  const customName = nameInput.value.trim();
+  const member = {
+    type: decoded.type,
+    nickname: customName || decoded.nickname || '匿名用户',
+    code: code.toUpperCase(),
+  };
+  // 检查是否已存在
+  if (importedMembers.some(m => m.code === member.code && m.nickname === member.nickname)) {
+    showToast('已经添加过了~'); return;
+  }
+  importedMembers.push(member);
+  nameInput.value = '';
+  codeInput.value = '';
+  showToast('添加成功！继续加下一个人~');
+  renderImported();
+}
+
+function renderImported() {
+  const card = document.getElementById('imported-card');
+  const listDiv = document.getElementById('imported-list');
+  if (importedMembers.length === 0) {
+    card.style.display = 'none';
+    return;
+  }
+  card.style.display = '';
+  listDiv.innerHTML = '';
+  importedMembers.forEach((m, idx) => {
+    const item = document.createElement('div');
+    item.className = 'imported-item';
+    item.innerHTML = `
+      <div class="info">
+        <span>${m.nickname}</span>
+        <span class="type-badge">${m.type}</span>
+      </div>
+      <button class="del-btn" onclick="removeImport(${idx})">✕</button>
+    `;
+    listDiv.appendChild(item);
+  });
+}
+
+function removeImport(idx) {
+  importedMembers.splice(idx, 1);
+  renderImported();
+}
+
+function clearImports() {
+  importedMembers = [];
+  renderImported();
+  showToast('已清空~');
+}
+
+/* ========== 17. 生成排行榜 ========== */
+function generateRank() {
+  if (importedMembers.length < 2) {
+    showToast('至少添加2个人才能对比哦~');
+    return;
+  }
+
+  document.getElementById('rank-subtitle').textContent =
+    `${importedMembers.length} 位选手的终极PK，看看你们群都是些什么神仙`;
+
+  const cardsDiv = document.getElementById('rank-cards');
+  cardsDiv.innerHTML = '';
+
+  RANK_CATEGORIES.forEach(cat => {
+    // 筛选出该维度方向的人
+    const candidates = importedMembers.filter(m => m.type.includes(cat.dir));
+    if (candidates.length === 0) return;
+
+    // 按维度得分排序（同方向内，看谁的倾向更极端）
+    // 简单处理：按名字排序，取前3
+    const sorted = candidates.sort((a, b) => {
+      const aScore = getDimScore(a.type, cat.dim, cat.dir);
+      const bScore = getDimScore(b.type, cat.dim, cat.dir);
+      return bScore - aScore; // 不分先后，随机性为主
+    });
+
+    const card = document.createElement('div');
+    card.className = 'rank-card';
+    let html = `<h3><span class="icon">${cat.icon}</span> ${cat.title}</h3>`;
+    html += `<div class="rank-list">`;
+
+    sorted.forEach((m, i) => {
+      if (i > 2) return; // 只显示前3
+      let posClass = '';
+      let posEmoji = '';
+      if (i === 0) { posClass = 'gold'; posEmoji = '🥇'; }
+      else if (i === 1) { posClass = 'silver'; posEmoji = '🥈'; }
+      else if (i === 2) { posClass = 'bronze'; posEmoji = '🥉'; }
+      const subLabel = (i === 0) ? cat.label : '';
+      html += `
+        <div class="rank-item">
+          <div class="rank-pos ${posClass}">${posEmoji}</div>
+          <div class="rank-name">
+            ${m.nickname}
+            ${subLabel ? `<div class="rank-label">${subLabel}</div>` : ''}
+          </div>
+          <div class="rank-type">${m.type}</div>
+        </div>
+      `;
+    });
+
+    html += `</div>`;
+    card.innerHTML = html;
+    cardsDiv.appendChild(card);
+  });
+
+  // 如果没有任何维度匹配（不太可能）
+  if (cardsDiv.children.length === 0) {
+    cardsDiv.innerHTML = `<div class="rank-card"><p style="text-align:center;color:var(--text-light)">暂无可生成的排行榜数据</p></div>`;
+  }
+
+  showPage('page-ranking');
+}
+
+/* 获取某人在某维度某方向的"强度"（简单实现：用类型中该字母的确定性） */
+function getDimScore(type, dim, dir) {
+  // 简单返回1，因为没有每题的详细分数
+  // 实际可用于排序的只有类型，同类型的人用随机排序
+  return 1 + Math.random();
+}
+
+/* ========== 18. 初始化 ========== */
+(function init() {
+  // 恢复历史结果
+  try {
+    const saved = localStorage.getItem('mbti_party_result');
+    if (saved) {
+      myResult = JSON.parse(saved);
+      document.getElementById('btn-history').style.display = '';
+    }
+  } catch(e) {}
+})();
+</script>
+</body>
+</html>
